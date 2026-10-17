@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FREE FIRE | BR Solo 10 Daily Tournament Arena</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        ff: {
+                            bg: '#07090e',
+                            card: '#111520',
+                            cardLight: '#1a2030',
+                            border: '#263048',
+                            yellow: '#ffcc00',
+                            orange: '#ff5500',
+                            red: '#e62429',
+                            cyan: '#00f0ff',
+                            darker: '#040508'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        ff: ['Teko', 'Rajdhani', 'sans-serif'],
+                        display: ['Rajdhani', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Rajdhani:wght@600;700;800&family=Teko:wght@600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        .ff-cut-corner {
+            clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+        }
+        .ff-cut-corner-sm {
+            clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+        }
+        .ff-btn-slanted {
+            clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+        }
+        .ff-badge-slanted {
+            clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+        }
+        .ff-glow-yellow {
+            box-shadow: 0 0 20px rgba(255, 204, 0, 0.3);
+        }
+        .ff-glow-orange {
+            box-shadow: 0 0 20px rgba(255, 85, 0, 0.3);
+        }
+        .ff-text-glow {
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.6);
+        }
+        .ff-grid-bg {
+            background-image: linear-gradient(rgba(38, 48, 72, 0.2) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(38, 48, 72, 0.2) 1px, transparent 1px);
+            background-size: 28px 28px;
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #07090e; }
+        ::-webkit-scrollbar-thumb { background: #ffcc00; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #ff5500; }
+    </style>
+</head>
+<body class="bg-ff-bg text-slate-100 font-sans min-h-screen flex flex-col ff-grid-bg selection:bg-ff-yellow selection:text-black">
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- ================= 1. AUTHENTICATION OVERLAY / LOGIN MODAL ================= -->
+    <div id="auth-screen" class="fixed inset-0 z-50 bg-ff-darker/95 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-ff-card border-2 border-ff-yellow/80 w-full max-w-md p-6 sm:p-8 space-y-6 relative ff-cut-corner ff-glow-yellow">
+            
+            <!-- App Header Title inside Auth Modal -->
+            <div class="text-center space-y-2">
+                <div class="w-16 h-16 bg-gradient-to-br from-ff-yellow to-ff-orange mx-auto flex items-center justify-center ff-cut-corner shadow-lg">
+                    <i class="fa-solid fa-crosshairs text-black text-3xl animate-pulse"></i>
+                </div>
+                <h1 class="font-ff text-4xl font-extrabold text-white tracking-wider leading-none">
+                    FREE FIRE <span class="text-ff-yellow ff-text-glow">BR ARENA</span>
+                </h1>
+                <p class="text-xs text-slate-400 font-sans">10 Daily Matches | ₹10 Entry Fee | Direct GPay Payouts</p>
+            </div>
+
+            <!-- Auth Mode Switch Tabs -->
+            <div class="grid grid-cols-2 bg-ff-darker p-1 border border-ff-border font-ff text-xl uppercase tracking-wider">
+                <button id="tab-login-btn" onclick="switchAuthMode('login')" class="py-1.5 text-ff-yellow bg-ff-card font-bold text-center">Login</button>
+                <button id="tab-signup-btn" onclick="switchAuthMode('signup')" class="py-1.5 text-slate-400 hover:text-white text-center">Sign Up</button>
+            </div>
+
+            <!-- Login / Signup Form -->
+            <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4 text-xs font-sans">
+                
+                <!-- Email Input -->
+                <div>
+                    <label class="block font-display text-slate-300 uppercase mb-1">Email / Phone *</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-user absolute left-3 top-3 text-slate-500"></i>
+                        <input type="text" id="auth-email" required placeholder="player@freefire.com or 9876543210" class="w-full bg-ff-darker border border-ff-border rounded pl-9 pr-3 py-2.5 text-sm text-white focus:border-ff-yellow outline-none font-mono">
+                    </div>
+                </div>
+
+                <!-- Password Input -->
+                <div>
+                    <label class="block font-display text-slate-300 uppercase mb-1">Password *</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute left-3 top-3 text-slate-500"></i>
+                        <input type="password" id="auth-password" required placeholder="••••••••" class="w-full bg-ff-darker border border-ff-border rounded pl-9 pr-3 py-2.5 text-sm text-white focus:border-ff-yellow outline-none font-mono">
+                    </div>
+                </div>
+
+                <!-- Admin Checkbox Toggle -->
+                <div class="bg-ff-darker p-3 border border-ff-border flex items-center justify-between">
+                    <label for="admin-login-checkbox" class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="admin-login-checkbox" class="w-4 h-4 accent-ff-yellow rounded">
+                        <span class="font-ff text-lg font-bold text-slate-200 uppercase"><i class="fa-solid fa-user-shield text-ff-orange"></i> Login as Organizer / Admin</span>
+                    </label>
+                </div>
+
+                <!-- Quick Admin Preset Helper Button -->
+                <div class="text-right">
+                    <button type="button" onclick="fillAdminCredentials()" class="text-[11px] text-ff-yellow hover:underline italic">
+                        <i class="fa-solid fa-key"></i> Quick Fill Admin Credentials (admin@ff.com / 1234)
+                    </button>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" id="auth-submit-btn" class="w-full py-3 bg-gradient-to-r from-ff-yellow to-ff-orange text-black font-ff text-2xl font-extrabold uppercase hover:opacity-95 transition ff-btn-slanted shadow-lg">
+                    ENTER BATTLE ARENA
+                </button>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- ================= 2. MAIN APP DASHBOARD HEADER ================= -->
+    <header class="sticky top-0 z-40 bg-ff-darker/95 backdrop-blur-md border-b border-ff-border">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 h-20 flex items-center justify-between">
+            
+            <!-- Logo Section -->
+            <div class="flex items-center gap-3 cursor-pointer" onclick="switchNavTab('matches')">
+                <div class="w-10 h-10 bg-gradient-to-br from-ff-yellow to-ff-orange flex items-center justify-center font-ff font-extrabold text-black text-2xl ff-cut-corner border border-yellow-300">
+                    <i class="fa-solid fa-crosshairs text-black text-lg"></i>
+                </div>
+                <div class="flex flex-col">
+                    <div class="flex items-center gap-2">
+                        <span class="font-ff text-2xl sm:text-3xl font-bold tracking-wider text-white leading-none">FREE FIRE</span>
+                        <span class="bg-ff-yellow text-black text-[9px] font-extrabold px-1.5 py-0.5 ff-badge-slanted uppercase font-display">SOLO BR</span>
+                    </div>
+                    <span class="text-[9px] uppercase tracking-widest text-ff-yellow font-display font-semibold flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span> 10 DAILY MATCHES
+                    </span>
+                </div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="hidden md:flex items-center gap-1 font-ff text-xl tracking-wider uppercase">
+                <button onclick="switchNavTab('matches')" id="nav-btn-matches" class="nav-btn px-4 py-1.5 text-ff-yellow border-b-2 border-ff-yellow font-bold transition flex items-center gap-2">
+                    <i class="fa-solid fa-fire text-ff-orange"></i> 10 Daily Schedule
+                </button>
+                <button onclick="switchNavTab('my-slots')" id="nav-btn-my-slots" class="nav-btn px-4 py-1.5 text-slate-400 hover:text-white transition flex items-center gap-2">
+                    <i class="fa-solid fa-ticket text-ff-yellow"></i> My Contest Matches
+                </button>
+                <!-- Admin Navigation Toggle Button (Only Visible to Admin) -->
+                <button id="admin-nav-item" onclick="switchNavTab('admin')" class="hidden nav-btn px-4 py-1.5 text-ff-orange hover:text-white transition flex items-center gap-2 bg-ff-orange/10 border border-ff-orange/40 ff-cut-corner-sm">
+                    <i class="fa-solid fa-user-shield"></i> Organizer Admin Panel
+                </button>
+            </nav>
+
+            <!-- User Auth Profile Badge & Logout -->
+            <div class="flex items-center gap-3">
+                <div class="text-right hidden sm:block">
+                    <span id="header-user-email" class="text-xs font-mono font-bold text-white block">player@freefire.com</span>
+                    <span id="header-user-role" class="text-[10px] font-ff text-ff-yellow tracking-wider uppercase">CONTESTANT</span>
+                </div>
+
+                <button onclick="logoutUser()" class="px-3 py-1.5 bg-ff-card border border-ff-border text-slate-300 hover:text-red-400 font-ff text-base transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-right-from-bracket"></i> <span class="hidden sm:inline">LOGOUT</span>
+                </button>
+
+                <!-- Mobile Navigation Toggle -->
+                <button onclick="toggleMobileMenu()" class="md:hidden text-xl text-ff-yellow p-1.5">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Drawer -->
+        <div id="mobile-menu" class="hidden md:hidden bg-ff-card border-b border-ff-border px-4 py-3 space-y-2 font-ff text-2xl uppercase">
+            <button onclick="switchNavTab('matches'); toggleMobileMenu();" class="w-full text-left py-1 text-ff-yellow flex items-center gap-2"><i class="fa-solid fa-fire text-ff-orange w-6"></i> 10 Daily Schedule</button>
+            <button onclick="switchNavTab('my-slots'); toggleMobileMenu();" class="w-full text-left py-1 text-slate-300 flex items-center gap-2"><i class="fa-solid fa-ticket w-6"></i> My Contest Matches</button>
+            <button id="mobile-admin-btn" onclick="switchNavTab('admin'); toggleMobileMenu();" class="hidden w-full text-left py-1 text-ff-orange flex items-center gap-2"><i class="fa-solid fa-user-shield w-6"></i> Organizer Admin Panel</button>
+        </div>
+    </header>
+
+
+    <!-- ================= 3. MAIN DASHBOARD CONTENT ================= -->
+    <main class="flex-grow max-w-7xl mx-auto px-3 sm:px-6 py-6 w-full space-y-8">
+
+        <!-- TAB 1: 10 DAILY MATCHES SCHEDULE -->
+        <section id="tab-matches" class="tab-content space-y-6">
+            
+            <!-- Free Fire Tactical Banner -->
+            <div class="relative bg-gradient-to-r from-ff-card via-ff-cardLight to-ff-card border-2 border-ff-yellow/50 p-5 sm:p-7 ff-cut-corner overflow-hidden ff-glow-yellow">
+                <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div class="space-y-2 max-w-2xl">
+                        <div class="inline-flex items-center gap-2 px-3 py-0.5 bg-ff-yellow text-black font-ff font-extrabold text-sm uppercase tracking-wider ff-badge-slanted">
+                            <i class="fa-solid fa-trophy"></i> OFFICIAL DAILY BR SOLO ARENA
+                        </div>
+                        <h2 class="font-ff text-4xl sm:text-5xl font-extrabold text-white tracking-wide uppercase leading-none">
+                            10 DAILY MATCHES <span class="text-ff-yellow ff-text-glow">₹200 POOL EACH</span>
+                        </h2>
+                        <p class="text-xs text-slate-300 font-sans">
+                            Each match has maximum <strong class="text-white">50 contestants</strong>. Entry Fee: <strong class="text-ff-yellow">₹10</strong>. Booyah 1st: <strong class="text-ff-yellow">₹100</strong>, 2nd: <strong class="text-slate-200">₹60</strong>, 3rd: <strong class="text-amber-500">₹40</strong>.
+                        </p>
+                    </div>
+
+                    <div class="bg-ff-darker border border-ff-yellow/60 p-4 ff-cut-corner text-center space-y-2 min-w-[240px]">
+                        <span class="text-[10px] font-display text-slate-400 uppercase tracking-widest block">DAILY MATCHES GAPS</span>
+                        <div class="text-3xl font-ff font-extrabold text-ff-yellow">30 MIN BREAKS</div>
+                        <span class="text-[11px] text-slate-300 font-mono block">10:00 AM IST to 02:30 PM IST</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Matches Schedule Grid Header -->
+            <div class="flex items-center justify-between bg-ff-card border border-ff-border p-4 ff-cut-corner-sm">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-calendar-days text-ff-yellow text-2xl"></i>
+                    <div>
+                        <h3 class="font-ff text-2xl font-bold text-white uppercase leading-none">TODAY'S 10 TOURNAMENT MATCHES</h3>
+                        <span class="text-xs text-slate-400 font-sans">Select a match, scan GPay QR code, and enter your 12-digit UTR to register.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 10 Daily Matches Grid -->
+            <div id="matches-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <!-- Dynamically Populated by JavaScript -->
+            </div>
+        </section>
+
+        <!-- TAB 2: MY REGISTERED MATCHES & LIVE UNLOCK ROOM HUB -->
+        <section id="tab-my-slots" class="tab-content hidden space-y-6">
+            <div class="border-b border-ff-border pb-4 flex items-center justify-between">
+                <div>
+                    <h2 class="font-ff text-3xl font-bold text-white uppercase tracking-wider">MY CONTEST REGISTRATIONS & ROOM HUB</h2>
+                    <p class="text-xs text-slate-400">Track payment verification status and view live unlocked Room ID & Password 2 minutes before match start.</p>
+                </div>
+                <button onclick="renderMySlotsTab()" class="px-3 py-1.5 bg-ff-card border border-ff-border text-xs text-slate-300 hover:text-white transition">
+                    <i class="fa-solid fa-rotate"></i> Refresh Status
+                </button>
+            </div>
+
+            <div id="my-registered-matches-container" class="space-y-4">
+                <!-- Dynamically Populated -->
+            </div>
+        </section>
+
+        <!-- TAB 3: ORGANIZER ADMIN PANEL (ONLY ACCESSIBLE BY ADMIN ROLE) -->
+        <section id="tab-admin" class="tab-content hidden space-y-6">
+            
+            <div class="border-b border-ff-border pb-4 flex items-center justify-between">
+                <div>
+                    <h2 class="font-ff text-3xl font-bold text-ff-orange uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-user-shield"></i> ORGANIZER ADMIN CONTROL PANEL
+                    </h2>
+                    <p class="text-xs text-slate-400">Review contestant payment UTRs per match, approve up to 50 players, and publish Room Credentials.</p>
+                </div>
+            </div>
+
+            <!-- Admin Match Filter Selector -->
+            <div class="bg-ff-card border border-ff-border p-4 ff-cut-corner-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3 w-full sm:w-auto">
+                    <label class="font-ff text-xl font-bold text-ff-yellow uppercase whitespace-nowrap">Filter Match:</label>
+                    <select id="admin-match-filter" onchange="renderAdminPanel()" class="bg-ff-darker border border-ff-border rounded px-3 py-2 text-sm text-white focus:border-ff-yellow outline-none w-full sm:w-72 font-sans">
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+
+                <button onclick="resetSelectedMatchSlots()" class="px-3 py-2 bg-red-950/60 border border-red-600 text-red-300 font-ff text-base font-bold hover:bg-red-900 transition">
+                    <i class="fa-solid fa-rotate-left"></i> Reset Match Contestants
+                </button>
+            </div>
+
+            <!-- Admin Split Grid: Left = Contestants List, Right = Publish Room Credentials -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Contestants List & Approval Table -->
+                <div class="lg:col-span-2 space-y-4">
+                    <div class="bg-ff-card border border-ff-border ff-cut-corner overflow-hidden">
+                        <div class="p-4 bg-ff-darker border-b border-ff-border flex items-center justify-between">
+                            <h3 class="font-ff text-2xl font-bold text-white uppercase flex items-center gap-2">
+                                <i class="fa-solid fa-users text-ff-yellow"></i> Paid Contestants (<span id="admin-contestant-count">0</span> / 50)
+                            </h3>
+                            <span id="admin-match-badge" class="px-2 py-0.5 bg-ff-yellow text-black font-ff font-extrabold text-xs uppercase">MATCH #1</span>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse font-sans text-xs">
+                                <thead>
+                                    <tr class="bg-slate-900/90 text-slate-400 font-ff text-sm uppercase border-b border-ff-border">
+                                        <th class="p-3">PLAYER IGN & UID</th>
+                                        <th class="p-3">ACCOUNT / EMAIL</th>
+                                        <th class="p-3">GPAY UTR NUMBER</th>
+                                        <th class="p-3">STATUS</th>
+                                        <th class="p-3 text-right">ACTION</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-contestants-tbody" class="divide-y divide-ff-border">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Room ID & Password Control Card -->
+                <div class="space-y-4">
+                    <div class="bg-ff-card border border-ff-border p-5 ff-cut-corner space-y-4">
+                        <div class="border-b border-ff-border pb-2">
+                            <h3 class="font-ff text-2xl font-bold text-ff-yellow uppercase flex items-center gap-2">
+                                <i class="fa-solid fa-key"></i> Publish Room ID & Pass
+                            </h3>
+                            <p class="text-[11px] text-slate-400">Published credentials auto-unlock for approved contestants exactly 2 minutes before match start.</p>
+                        </div>
+
+                        <form onsubmit="handlePublishRoomCreds(event)" class="space-y-3 font-sans text-xs">
+                            <div>
+                                <label class="block font-display text-slate-300 uppercase mb-1">Room ID *</label>
+                                <input type="text" id="admin-input-roomid" required placeholder="e.g. 9842109" class="w-full bg-ff-darker border border-ff-border rounded px-3 py-2 text-sm text-white font-mono focus:border-ff-yellow outline-none">
+                            </div>
+                            <div>
+                                <label class="block font-display text-slate-300 uppercase mb-1">Room Password *</label>
+                                <input type="text" id="admin-input-roompass" required placeholder="e.g. BOOYAH2026" class="w-full bg-ff-darker border border-ff-border rounded px-3 py-2 text-sm text-white font-mono focus:border-ff-yellow outline-none">
+                            </div>
+                            <button type="submit" class="w-full py-2.5 bg-gradient-to-r from-ff-yellow to-ff-orange text-black font-ff text-xl font-extrabold uppercase hover:opacity-95 transition ff-btn-slanted">
+                                Publish Room Credentials
+                            </button>
+                        </form>
+
+                        <div id="admin-current-room-status" class="p-3 bg-ff-darker border border-ff-border font-mono text-[11px] space-y-1 text-slate-300">
+                            <!-- Status updated dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+
+    <!-- ================= 4. MODALS & POPUPS ================= -->
+
+    <!-- GPAY PAYMENT & REGISTRATION MODAL -->
+    <div id="modal-gpay-payment" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-ff-card border-2 border-ff-yellow w-full max-w-md p-5 sm:p-6 space-y-5 relative ff-cut-corner ff-glow-yellow max-h-[92vh] overflow-y-auto">
+            <button onclick="closeModal('modal-gpay-payment')" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+
+            <div class="text-center space-y-1">
+                <span id="gpay-modal-match-title" class="px-2.5 py-0.5 bg-ff-yellow text-black font-ff font-extrabold text-xs uppercase">MATCH #1 - 10:00 AM</span>
+                <h3 class="font-ff text-3xl font-extrabold text-white uppercase tracking-wider">CONTEST ENTRY PAYMENT</h3>
+                <p class="text-xs text-slate-300">Scan GPay QR Code and pay <strong class="text-ff-yellow">₹10</strong> to participate.</p>
+            </div>
+
+            <!-- GPay QR Box -->
+            <div class="bg-ff-darker p-4 border border-ff-border space-y-3">
+                <div class="flex items-center justify-between text-xs font-display">
+                    <span class="text-slate-400">Accepted: GPay / PhonePe / Paytm</span>
+                    <span class="text-ff-yellow font-bold">UPI ID: <strong class="text-white">freefire@okaxis</strong></span>
+                </div>
+
+                <!-- Embedded Clean SVG QR Representation -->
+                <div class="bg-white p-3 rounded w-44 h-44 mx-auto flex flex-col items-center justify-center border-2 border-ff-yellow shadow-lg">
+                    <svg viewBox="0 0 100 100" class="w-full h-full">
+                        <rect width="100" height="100" fill="#ffffff"/>
+                        <rect x="5" y="5" width="25" height="25" fill="#000000"/>
+                        <rect x="9" y="9" width="17" height="17" fill="#ffffff"/>
+                        <rect x="13" y="13" width="9" height="9" fill="#000000"/>
+                        <rect x="70" y="5" width="25" height="25" fill="#000000"/>
+                        <rect x="74" y="9" width="17" height="17" fill="#ffffff"/>
+                        <rect x="78" y="13" width="9" height="9" fill="#000000"/>
+                        <rect x="5" y="70" width="25" height="25" fill="#000000"/>
+                        <rect x="9" y="74" width="17" height="17" fill="#ffffff"/>
+                        <rect x="13" y="78" width="9" height="9" fill="#000000"/>
+                        <rect x="35" y="10" width="10" height="15" fill="#000000"/>
+                        <rect x="50" y="15" width="10" height="10" fill="#000000"/>
+                        <rect x="35" y="35" width="30" height="10" fill="#000000"/>
+                        <rect x="70" y="40" width="15" height="20" fill="#000000"/>
+                        <rect x="10" y="40" width="15" height="10" fill="#000000"/>
+                        <rect x="40" y="55" width="20" height="20" fill="#000000"/>
+                        <rect x="70" y="70" width="25" height="25" fill="#000000"/>
+                    </svg>
+                    <span class="text-[9px] text-black font-extrabold mt-1 font-mono uppercase">GPay ₹10 SCAN TO PAY</span>
+                </div>
+            </div>
+
+            <!-- Registration Details Form -->
+            <form onsubmit="handleGPayRegistration(event)" class="space-y-3 text-xs font-sans">
+                <div>
+                    <label class="block font-display text-slate-300 uppercase mb-1">Free Fire In-Game Name (IGN) *</label>
+                    <input type="text" id="gpay-input-ign" required placeholder="e.g. SK_SABIR_BOSS" class="w-full bg-ff-darker border border-ff-border rounded px-3 py-2 text-sm text-white focus:border-ff-yellow outline-none">
+                </div>
+                <div>
+                    <label class="block font-display text-slate-300 uppercase mb-1">Free Fire UID (8-10 Digits) *</label>
+                    <input type="text" id="gpay-input-uid" required placeholder="e.g. 984210983" class="w-full bg-ff-darker border border-ff-border rounded px-3 py-2 text-sm text-white font-mono focus:border-ff-yellow outline-none">
+                </div>
+                <div>
+                    <label class="block font-display text-slate-300 uppercase mb-1">GPay Transaction UTR / Ref ID (12 Digits) *</label>
+                    <input type="text" id="gpay-input-utr" required placeholder="e.g. 426189028341" class="w-full bg-ff-darker border border-ff-border rounded px-3 py-2 text-sm text-white font-mono focus:border-ff-yellow outline-none">
+                </div>
+
+                <button type="submit" class="w-full py-3 bg-gradient-to-r from-ff-yellow to-ff-orange text-black font-ff text-2xl font-extrabold uppercase hover:opacity-95 transition ff-btn-slanted shadow-lg mt-2">
+                    Submit Entry & Claim Slot
+                </button>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- ================= 5. APPLICATION LOGIC & STATE ================= -->
+    <script>
+        // --- 10 DAILY MATCHES SCHEDULE DEFINITION (30-MIN GAPS) ---
+        const DAILY_SCHEDULE = [
+            { id: 1, title: 'MATCH #1', map: 'Bermuda', startOffsetMins: 0, timeLabel: '10:00 AM IST' },
+            { id: 2, title: 'MATCH #2', map: 'Purgatory', startOffsetMins: 30, timeLabel: '10:30 AM IST' },
+            { id: 3, title: 'MATCH #3', map: 'Kalahari', startOffsetMins: 60, timeLabel: '11:00 AM IST' },
+            { id: 4, title: 'MATCH #4', map: 'Alpine', startOffsetMins: 90, timeLabel: '11:30 AM IST' },
+            { id: 5, title: 'MATCH #5', map: 'Nexterra', startOffsetMins: 120, timeLabel: '12:00 PM IST' },
+            { id: 6, title: 'MATCH #6', map: 'Bermuda Remastered', startOffsetMins: 150, timeLabel: '12:30 PM IST' },
+            { id: 7, title: 'MATCH #7', map: 'Purgatory', startOffsetMins: 180, timeLabel: '01:00 PM IST' },
+            { id: 8, title: 'MATCH #8', map: 'Kalahari', startOffsetMins: 210, timeLabel: '01:30 PM IST' },
+            { id: 9, title: 'MATCH #9', map: 'Alpine', startOffsetMins: 240, timeLabel: '02:00 PM IST' },
+            { id: 10, title: 'MATCH #10 (FINALE)', map: 'Bermuda', startOffsetMins: 270, timeLabel: '02:30 PM IST' }
+        ];
+
+        // Global Dynamic State
+        let currentUser = null; // { email, role: 'user' | 'admin' }
+        let selectedMatchForGPay = null;
+        let matchRegistrations = {}; // { matchId: [ { userEmail, ign, uid, utr, status: 'pending'|'approved'|'rejected', timestamp } ] }
+        let roomCredentials = {}; // { matchId: { roomId, password } }
+        let matchTimesMap = {}; // { matchId: Date Object for today's start }
+
+        // --- INIT APP & CALCULATE MATCH START TIMES ---
+        window.onload = function() {
+            calculateTodayMatchTimes();
+            loadStateFromLocalStorage();
+            startCountdownEngine();
+
+            // Check if user session exists
+            const savedUser = localStorage.getItem('ff_active_user');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                hideAuthScreen();
+            } else {
+                showAuthScreen();
+            }
+        };
+
+        function calculateTodayMatchTimes() {
+            // Base starting time for Match #1 is set relative to current date for seamless demo
+            const now = new Date();
+            let baseTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 10, 0, 0); // 10:00 AM today
+            
+            // If current time is past 3 PM, push demo schedule 15 minutes ahead for easy live testing
+            if (now > new Date(now.getFullYear(), now.getMonth(), now.getDate(), 15, 0, 0)) {
+                baseTime = new Date(now.getTime() + 5 * 60000); // starts in 5 minutes
+            }
+
+            DAILY_SCHEDULE.forEach(m => {
+                matchTimesMap[m.id] = new Date(baseTime.getTime() + m.startOffsetMins * 60000);
+            });
+        }
+
+        function loadStateFromLocalStorage() {
+            const savedRegs = localStorage.getItem('ff_match_registrations');
+            if (savedRegs) matchRegistrations = JSON.parse(savedRegs);
+
+            const savedCreds = localStorage.getItem('ff_room_credentials');
+            if (savedCreds) roomCredentials = JSON.parse(savedCreds);
+        }
+
+        function saveStateToLocalStorage() {
+            localStorage.setItem('ff_match_registrations', JSON.stringify(matchRegistrations));
+            localStorage.setItem('ff_room_credentials', JSON.stringify(roomCredentials));
+        }
+
+        // --- AUTHENTICATION FLOW & PRESETS ---
+        function switchAuthMode(mode) {
+            const loginBtn = document.getElementById('tab-login-btn');
+            const signupBtn = document.getElementById('tab-signup-btn');
+            const submitBtn = document.getElementById('auth-submit-btn');
+
+            if (mode === 'login') {
+                loginBtn.className = 'py-1.5 text-ff-yellow bg-ff-card font-bold text-center';
+                signupBtn.className = 'py-1.5 text-slate-400 hover:text-white text-center';
+                submitBtn.textContent = 'ENTER BATTLE ARENA';
+            } else {
+                signupBtn.className = 'py-1.5 text-ff-yellow bg-ff-card font-bold text-center';
+                loginBtn.className = 'py-1.5 text-slate-400 hover:text-white text-center';
+                submitBtn.textContent = 'CREATE PLAYER ACCOUNT';
+            }
+        }
+
+        function fillAdminCredentials() {
+            document.getElementById('auth-email').value = 'admin@ff.com';
+            document.getElementById('auth-password').value = '1234';
+            document.getElementById('admin-login-checkbox').checked = true;
+        }
+
+        function handleAuthSubmit(e) {
+            e.preventDefault();
+            const email = document.getElementById('auth-email').value.trim();
+            const password = document.getElementById('auth-password').value.trim();
+            const isAdmin = document.getElementById('admin-login-checkbox').checked;
+
+            if (isAdmin) {
+                if (password !== '1234') {
+                    showToast("Invalid Organizer Admin Password! (Default PIN: 1234)", "error");
+                    return;
+                }
+                currentUser = { email: email || 'admin@ff.com', role: 'admin' };
+            } else {
+                currentUser = { email: email, role: 'user' };
+            }
+
+            localStorage.setItem('ff_active_user', JSON.stringify(currentUser));
+            showToast(`Welcome ${currentUser.email}!`, "success");
+            hideAuthScreen();
+        }
+
+        function showAuthScreen() {
+            document.getElementById('auth-screen').classList.remove('hidden');
+        }
+
+        function hideAuthScreen() {
+            document.getElementById('auth-screen').classList.add('hidden');
+            
+            // Update UI with User Role
+            document.getElementById('header-user-email').textContent = currentUser.email;
+            document.getElementById('header-user-role').textContent = currentUser.role === 'admin' ? 'ORGANIZER ADMIN' : 'PLAYER CONTESTANT';
+
+            const adminNav = document.getElementById('admin-nav-item');
+            const mobileAdminBtn = document.getElementById('mobile-admin-btn');
+            
+            if (currentUser.role === 'admin') {
+                adminNav.classList.remove('hidden');
+                mobileAdminBtn.classList.remove('hidden');
+                populateAdminMatchOptions();
+            } else {
+                adminNav.classList.add('hidden');
+                mobileAdminBtn.classList.add('hidden');
+            }
+
+            renderMatchesGrid();
+            renderMySlotsTab();
+        }
+
+        function logoutUser() {
+            localStorage.removeItem('ff_active_user');
+            currentUser = null;
+            showAuthScreen();
+            showToast("Logged out successfully.", "info");
+        }
+
+
+        // --- MATCHES GRID RENDER & GPAY REGISTRATION FLOW ---
+        function renderMatchesGrid() {
+            const container = document.getElementById('matches-grid');
+            
+            container.innerHTML = DAILY_SCHEDULE.map(match => {
+                const matchTime = matchTimesMap[match.id];
+                const now = new Date();
+                const signups = matchRegistrations[match.id] || [];
+                const approvedCount = signups.filter(s => s.status === 'approved').length;
+                const totalCount = signups.length;
+                const isFull = approvedCount >= 50;
+
+                // Check if user is already signed up
+                const userSignup = currentUser ? signups.find(s => s.userEmail === currentUser.email) : null;
+
+                return `
+                    <div class="bg-ff-card border border-ff-border ff-cut-corner p-5 flex flex-col justify-between space-y-4 hover:border-ff-yellow/60 transition duration-300 relative">
+                        
+                        <!-- Map & Status Badge -->
+                        <div class="flex items-center justify-between">
+                            <span class="px-2.5 py-0.5 bg-ff-darker text-ff-yellow border border-ff-yellow/40 font-ff text-sm font-bold uppercase">
+                                <i class="fa-solid fa-map"></i> ${match.map}
+                            </span>
+                            <span class="text-xs font-ff uppercase px-2 py-0.5 ${isFull ? 'bg-red-950 text-red-300' : 'bg-emerald-950 text-emerald-400 border border-emerald-500/30'}">
+                                ${isFull ? 'SLOTS FULL (50/50)' : 'REGISTRATION OPEN'}
+                            </span>
+                        </div>
+
+                        <!-- Match Title & Start Time -->
+                        <div class="space-y-1">
+                            <h3 class="font-ff text-3xl font-extrabold text-white tracking-wide uppercase leading-none">${match.title}</h3>
+                            <p class="text-xs text-slate-300 font-sans flex items-center gap-1.5">
+                                <i class="fa-regular fa-clock text-ff-yellow"></i> Start Time: <strong class="text-white">${match.timeLabel}</strong>
+                            </p>
+                        </div>
+
+                        <!-- Entry & Pool Banner -->
+                        <div class="bg-ff-darker p-2.5 border border-ff-border flex items-center justify-between text-xs font-display">
+                            <div>
+                                <span class="text-slate-400 block text-[10px]">ENTRY FEE</span>
+                                <span class="text-ff-yellow font-extrabold font-ff text-xl leading-none">₹10</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-slate-400 block text-[10px]">CONTESTANTS</span>
+                                <span class="text-white font-extrabold font-ff text-xl leading-none">${approvedCount} / 50</span>
+                            </div>
+                        </div>
+
+                        <!-- Progress Bar -->
+                        <div class="w-full bg-ff-darker border border-ff-border h-2">
+                            <div class="bg-gradient-to-r from-ff-yellow to-ff-orange h-full" style="width: ${(approvedCount / 50) * 100}%;"></div>
+                        </div>
+
+                        <!-- Dynamic Action Button -->
+                        <div>
+                            ${userSignup ? `
+                                <div class="w-full py-2.5 text-center font-ff text-lg font-bold uppercase ${userSignup.status === 'approved' ? 'bg-emerald-950 text-emerald-400 border border-emerald-500' : 'bg-amber-950 text-ff-yellow border border-ff-yellow'}">
+                                    ${userSignup.status === 'approved' ? '<i class="fa-solid fa-circle-check"></i> JOINED & APPROVED' : '<i class="fa-solid fa-clock"></i> PAYMENT PENDING VERIFICATION'}
+                                </div>
+                            ` : `
+                                <button onclick="openGPayModal(${match.id})" ${isFull ? 'disabled' : ''} class="w-full py-2.5 bg-gradient-to-r from-ff-yellow to-ff-orange text-black font-ff text-xl font-extrabold uppercase hover:opacity-90 transition ff-btn-slanted ${isFull ? 'opacity-50 cursor-not-allowed' : ''}">
+                                    ${isFull ? 'SLOTS FULL' : 'PAY ₹10 & JOIN MATCH'}
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openGPayModal(matchId) {
+            if (!currentUser) {
+                showAuthScreen();
+                return;
+            }
+            selectedMatchForGPay = matchId;
+            const match = DAILY_SCHEDULE.find(m => m.id === matchId);
+            document.getElementById('gpay-modal-match-title').textContent = `${match.title} - ${match.map} (${match.timeLabel})`;
+            document.getElementById('modal-gpay-payment').classList.remove('hidden');
+        }
+
+        function handleGPayRegistration(e) {
+            e.preventDefault();
+            const ign = document.getElementById('gpay-input-ign').value.trim();
+            const uid = document.getElementById('gpay-input-uid').value.trim();
+            const utr = document.getElementById('gpay-input-utr').value.trim();
+
+            if (utr.length < 8) {
+                showToast("Please enter a valid 12-digit GPay Transaction UTR number.", "error");
+                return;
+            }
+
+            if (!matchRegistrations[selectedMatchForGPay]) {
+                matchRegistrations[selectedMatchForGPay] = [];
+            }
+
+            // Push contestant entry
+            matchRegistrations[selectedMatchForGPay].push({
+                userEmail: currentUser.email,
+                ign: ign,
+                uid: uid,
+                utr: utr,
+                status: 'pending',
+                timestamp: new Date().toISOString()
+            });
+
+            saveStateToLocalStorage();
+            showToast("Payment submitted! Admin will verify your UTR shorty.", "success");
+            closeModal('modal-gpay-payment');
+
+            // Reset inputs
+            document.getElementById('gpay-input-ign').value = '';
+            document.getElementById('gpay-input-uid').value = '';
+            document.getElementById('gpay-input-utr').value = '';
+
+            renderMatchesGrid();
+            renderMySlotsTab();
+        }
+
+
+        // --- USER PERSONAL HUB & AUTOMATED 2-MIN ROOM UNLOCK TIMER ENGINE ---
+        function renderMySlotsTab() {
+            const container = document.getElementById('my-registered-matches-container');
+            if (!currentUser) return;
+
+            let myEntries = [];
+            Object.keys(matchRegistrations).forEach(matchId => {
+                const match = DAILY_SCHEDULE.find(m => m.id == matchId);
+                const userEntry = matchRegistrations[matchId].find(s => s.userEmail === currentUser.email);
+                if (userEntry) {
+                    myEntries.push({ ...userEntry, matchId: match.id, matchTitle: match.title, matchMap: match.map, matchTime: matchTimesMap[match.id], timeLabel: match.timeLabel });
+                }
+            });
+
+            if (myEntries.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-ff-card border border-ff-border p-8 text-center space-y-3 ff-cut-corner">
+                        <i class="fa-solid fa-ticket text-ff-yellow text-4xl"></i>
+                        <h3 class="font-ff text-2xl text-white font-bold uppercase">NO MATCHES REGISTERED YET</h3>
+                        <p class="text-xs text-slate-400">Join any of the 10 daily matches for ₹10 to access live Room ID & Password here.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = myEntries.map(entry => {
+                const isApproved = entry.status === 'approved';
+                const matchTime = entry.matchTime;
+                const now = new Date();
+                const diffMs = matchTime - now;
+                const isUnlockWindow = diffMs <= 2 * 60000; // Exact 2 minutes before match time
+                const creds = roomCredentials[entry.matchId];
+
+                return `
+                    <div class="bg-ff-card border ${isApproved ? 'border-emerald-500/60' : 'border-ff-yellow/50'} p-5 ff-cut-corner space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-ff-border pb-3 gap-2">
+                            <div>
+                                <span class="text-xs font-ff uppercase text-ff-yellow">${entry.matchTitle} (${entry.matchMap})</span>
+                                <h3 class="font-ff text-2xl font-bold text-white uppercase leading-none">${entry.ign} (UID: ${entry.uid})</h3>
+                            </div>
+                            <span class="px-3 py-1 font-ff text-sm uppercase font-bold w-fit ${isApproved ? 'bg-emerald-950 text-emerald-400 border border-emerald-500' : 'bg-amber-950 text-ff-yellow border border-ff-yellow'}">
+                                ${isApproved ? '<i class="fa-solid fa-circle-check"></i> CONFIRMED CONTESTANT' : '<i class="fa-solid fa-clock"></i> PENDING PAYMENT VERIFICATION'}
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs font-sans">
+                            <div class="bg-ff-darker p-2.5 border border-ff-border">
+                                <span class="text-slate-400 block text-[10px]">START TIME</span>
+                                <strong class="text-white font-mono">${entry.timeLabel}</strong>
+                            </div>
+                            <div class="bg-ff-darker p-2.5 border border-ff-border">
+                                <span class="text-slate-400 block text-[10px]">SUBMITTED UTR</span>
+                                <strong class="text-ff-yellow font-mono">${entry.utr}</strong>
+                            </div>
+                            <div class="bg-ff-darker p-2.5 border border-ff-border col-span-2 sm:col-span-1">
+                                <span class="text-slate-400 block text-[10px]">ROOM UNLOCK STATUS</span>
+                                <strong class="text-slate-200 font-mono">${isUnlockWindow ? 'UNLOCKED' : 'LOCKED (2 MINS BEFORE)'}</strong>
+                            </div>
+                        </div>
+
+                        <!-- ROOM ID & PASSWORD REVEAL BOX -->
+                        <div class="bg-ff-darker p-4 border border-ff-border space-y-2">
+                            ${!isApproved ? `
+                                <div class="text-xs text-ff-yellow flex items-center gap-2">
+                                    <i class="fa-solid fa-lock"></i> Room Credentials will unlock once Admin approves your GPay payment UTR.
+                                </div>
+                            ` : !isUnlockWindow ? `
+                                <div class="flex items-center justify-between text-xs font-mono">
+                                    <span class="text-slate-400"><i class="fa-solid fa-lock text-ff-yellow"></i> Room Credentials Auto-Unlock in:</span>
+                                    <span class="text-ff-yellow font-bold text-sm bg-ff-card px-2 py-0.5 border border-ff-yellow/40 live-unlock-countdown" data-time="${matchTime.getTime()}">Calculated live...</span>
+                                </div>
+                            ` : creds ? `
+                                <div class="bg-gradient-to-r from-emerald-950 to-ff-card p-3 border border-emerald-500 space-y-2">
+                                    <div class="flex items-center justify-between text-xs font-ff uppercase text-emerald-400">
+                                        <span><i class="fa-solid fa-key"></i> ROOM CREDENTIALS UNLOCKED</span>
+                                        <span class="animate-pulse">JOIN ROOM NOW</span>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3 text-sm font-mono">
+                                        <div class="bg-ff-darker p-2 border border-emerald-500/40">
+                                            <span class="text-[10px] text-slate-400 block">ROOM ID</span>
+                                            <strong class="text-ff-yellow text-xl">${creds.roomId}</strong>
+                                        </div>
+                                        <div class="bg-ff-darker p-2 border border-emerald-500/40">
+                                            <span class="text-[10px] text-slate-400 block">PASSWORD</span>
+                                            <strong class="text-white text-xl">${creds.password}</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            ` : `
+                                <div class="text-xs text-slate-400 italic">
+                                    Match starts in less than 2 minutes. Waiting for Organizer Admin to publish Room ID...
+                                </div>
+                            `}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // --- REAL-TIME COUNTDOWN ENGINE ---
+        function startCountdownEngine() {
+            setInterval(() => {
+                const now = new Date().getTime();
+                document.querySelectorAll('.live-unlock-countdown').forEach(el => {
+                    const matchTimeMs = parseInt(el.getAttribute('data-time'));
+                    const unlockTimeMs = matchTimeMs - 2 * 60000; // 2 minutes before
+                    const diffMs = unlockTimeMs - now;
+
+                    if (diffMs <= 0) {
+                        el.textContent = "UNLOCKING NOW...";
+                        renderMySlotsTab(); // Re-render to show unlocked credentials
+                    } else {
+                        const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                        const secs = Math.floor((diffMs % (1000 * 60)) / 1000);
+                        el.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                    }
+                });
+            }, 1000);
+        }
+
+
+        // --- ORGANIZER ADMIN PANEL FUNCTIONS ---
+        function populateAdminMatchOptions() {
+            const select = document.getElementById('admin-match-filter');
+            select.innerHTML = DAILY_SCHEDULE.map(m => `<option value="${m.id}">${m.title} (${m.map} @ ${m.timeLabel})</option>`).join('');
+            renderAdminPanel();
+        }
+
+        function renderAdminPanel() {
+            const matchId = document.getElementById('admin-match-filter').value || 1;
+            const match = DAILY_SCHEDULE.find(m => m.id == matchId);
+            const signups = matchRegistrations[matchId] || [];
+
+            document.getElementById('admin-match-badge').textContent = match.title;
+            document.getElementById('admin-contestant-count').textContent = signups.filter(s => s.status === 'approved').length;
+
+            const tbody = document.getElementById('admin-contestants-tbody');
+            if (signups.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-500 font-sans">No contestants registered for this match yet.</td></tr>`;
+            } else {
+                tbody.innerHTML = signups.map((s, idx) => `
+                    <tr class="hover:bg-slate-900/60 transition">
+                        <td class="p-3">
+                            <strong class="text-white block">${s.ign}</strong>
+                            <span class="text-slate-400 font-mono text-[10px]">UID: ${s.uid}</span>
+                        </td>
+                        <td class="p-3 text-slate-300 font-mono">${s.userEmail}</td>
+                        <td class="p-3 font-mono font-bold text-ff-yellow">${s.utr}</td>
+                        <td class="p-3">
+                            <span class="px-2 py-0.5 font-ff uppercase text-xs ${s.status === 'approved' ? 'bg-emerald-950 text-emerald-400 border border-emerald-500' : s.status === 'rejected' ? 'bg-red-950 text-red-400' : 'bg-amber-950 text-ff-yellow'}">
+                                ${s.status}
+                            </span>
+                        </td>
+                        <td class="p-3 text-right space-x-1 font-ff text-sm">
+                            ${s.status !== 'approved' ? `<button onclick="updateContestantStatus(${matchId}, ${idx}, 'approved')" class="px-2.5 py-1 bg-emerald-600 text-white font-bold hover:bg-emerald-500">APPROVE</button>` : ''}
+                            ${s.status !== 'rejected' ? `<button onclick="updateContestantStatus(${matchId}, ${idx}, 'rejected')" class="px-2.5 py-1 bg-red-700 text-white font-bold hover:bg-red-600">REJECT</button>` : ''}
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            // Render current published room creds status
+            const creds = roomCredentials[matchId];
+            const statusBox = document.getElementById('admin-current-room-status');
+            if (creds) {
+                statusBox.innerHTML = `
+                    <span class="text-emerald-400 block font-bold"><i class="fa-solid fa-circle-check"></i> Credentials Published:</span>
+                    <div>Room ID: <strong class="text-ff-yellow">${creds.roomId}</strong></div>
+                    <div>Password: <strong class="text-white">${creds.password}</strong></div>
+                `;
+            } else {
+                statusBox.innerHTML = `<span class="text-amber-500"><i class="fa-solid fa-triangle-exclamation"></i> No Room Credentials published yet for this match.</span>`;
+            }
+        }
+
+        function updateContestantStatus(matchId, contestantIdx, newStatus) {
+            matchRegistrations[matchId][contestantIdx].status = newStatus;
+            saveStateToLocalStorage();
+            showToast(`Contestant payment ${newStatus.toUpperCase()}`, "success");
+            renderAdminPanel();
+            renderMatchesGrid();
+        }
+
+        function handlePublishRoomCreds(e) {
+            e.preventDefault();
+            const matchId = document.getElementById('admin-match-filter').value || 1;
+            const roomId = document.getElementById('admin-input-roomid').value.trim();
+            const password = document.getElementById('admin-input-roompass').value.trim();
+
+            roomCredentials[matchId] = { roomId, password };
+            saveStateToLocalStorage();
+
+            showToast(`Room credentials published for Match #${matchId}!`, "success");
+            document.getElementById('admin-input-roomid').value = '';
+            document.getElementById('admin-input-roompass').value = '';
+
+            renderAdminPanel();
+        }
+
+        function resetSelectedMatchSlots() {
+            const matchId = document.getElementById('admin-match-filter').value || 1;
+            if (!confirm(`Are you sure you want to reset all contestants for Match #${matchId}?`)) return;
+
+            matchRegistrations[matchId] = [];
+            delete roomCredentials[matchId];
+            saveStateToLocalStorage();
+
+            renderAdminPanel();
+            renderMatchesGrid();
+            showToast(`Match #${matchId} contestants cleared.`, "info");
+        }
+
+
+        // --- UI UTILITY FUNCTIONS ---
+        function switchNavTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('text-ff-yellow', 'border-b-2', 'border-ff-yellow'));
+
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`nav-btn-${tabId}`);
+            if (activeBtn) activeBtn.classList.add('text-ff-yellow', 'border-b-2', 'border-ff-yellow');
+
+            if (tabId === 'my-slots') renderMySlotsTab();
+            if (tabId === 'admin') renderAdminPanel();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleMobileMenu() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const bgClass = type === 'success' ? 'bg-emerald-600 text-white' : type === 'error' ? 'bg-red-600 text-white' : 'bg-ff-card text-ff-yellow border border-ff-yellow';
+            toast.className = `pointer-events-auto px-4 py-3 font-ff text-lg uppercase tracking-wider flex items-center gap-2 shadow-2xl transition transform translate-y-2 opacity-0 ${bgClass}`;
+            toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-triangle-exclamation'}"></i> <span>${msg}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.classList.remove('translate-y-2', 'opacity-0'); }, 10);
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
